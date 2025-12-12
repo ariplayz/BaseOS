@@ -1,3 +1,4 @@
+
 name: Build BaseOS
 
 on:
@@ -15,13 +16,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Install basic dependencies
-      - name: Install build tools
+      # Install required tools
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake make xorriso ovmf wget tar
+          sudo apt-get install -y cmake make xorriso ovmf wget tar dosfstools mtools
 
-      # Download and build gnu-efi from source
+      # Download and build gnu-efi
       - name: Build and install gnu-efi
         run: |
           wget https://psychz.dl.sourceforge.net/project/gnu-efi/gnu-efi-3.0.18.tar.bz2
@@ -37,7 +38,6 @@ jobs:
           echo "BUILD_PATH=build" >> $GITHUB_ENV
           echo "RUN_PATH=build/qemu" >> $GITHUB_ENV
           echo "OVMF_DISK_IMG=/usr/share/ovmf/OVMF.fd" >> $GITHUB_ENV
-          echo "ISO_ROOT=iso_root" >> $GITHUB_ENV
 
       # Clean previous build
       - name: Clean previous build
@@ -52,46 +52,52 @@ jobs:
           make
           cd ..
 
-      # Prepare ISO directory
-      - name: Prepare ISO directory
+      # Create bootable ISO with FAT EFI image
+      - name: Create bootable ISO
         run: |
-          mkdir -p $ISO_ROOT/EFI/BOOT
-          cp $BUILD_PATH/cppefi.efi $ISO_ROOT/EFI/BOOT/BOOTX64.EFI
+          set -e
+          BINARY_PATH=$BUILD_PATH/cppefi.efi
+          ISO_ROOT=$RUN_PATH/iso
+          EFI_IMG=$RUN_PATH/efiboot.img
+          ISO_FILE=$RUN_PATH/uefi.iso
+
+          mkdir -p $RUN_PATH $ISO_ROOT
+
+          if [ ! -f "$BINARY_PATH" ]; then
+            echo "ERROR: EFI binary not found at $BINARY_PATH"
+            exit 1
+          fi
+
+          echo "[+] Creating EFI boot image..."
+          dd if=/dev/zero of=$EFI_IMG bs=1M count=10
+          mkfs.vfat $EFI_IMG
+          mmd -i $EFI_IMG ::/EFI ::/EFI/BOOT
+          mcopy -i $EFI_IMG $BINARY_PATH ::/EFI/BOOT/BOOTX64.EFI
+
           echo "EFI\\BOOT\\BOOTX64.EFI" > $ISO_ROOT/startup.nsh
 
-      # Create ISO image
-      - name: Create ISO image
-        run: |
-          mkdir -p $RUN_PATH
+          mv $EFI_IMG $ISO_ROOT/efiboot.img
+
+          echo "[+] Creating bootable ISO..."
           xorriso -as mkisofs \
-            -o $RUN_PATH/uefi.iso \
+            -o $ISO_FILE \
             -iso-level 3 \
+            -full-iso9660-filenames \
             -eltorito-alt-boot \
-            -e EFI/BOOT/BOOTX64.EFI \
+            -e efiboot.img \
             -no-emul-boot \
             $ISO_ROOT
 
-      # Copy ISO to bin directory
-      - name: Copy ISO to bin
-        run: |
           mkdir -p bin
-          cp $RUN_PATH/uefi.iso bin/BaseOS.iso
+          cp $ISO_FILE bin/BaseOS.iso
 
-
-
+      # Upload ISO artifact
       - name: Upload BaseOS ISO
         uses: actions/upload-artifact@v4
         with:
-            name: BaseOS.iso
-            path: bin/BaseOS.iso   # <-- specify the file or directory
-            if-no-files-found: warn
-            compression-level: 6
-            overwrite: false
-            include-hidden-files: false
-        env:
-            BUILD_PATH: build
-            RUN_PATH: build/qemu
-            OVMF_DISK_IMG: /usr/share/ovmf/OVMF.fd
-            ISO_ROOT: iso_root
-
-
+          name: BaseOS.iso
+          path: bin/BaseOS.iso
+          if-no-files-found: warn
+          compression-level: 6
+          overwrite: false
+          include-hidden-files: false
