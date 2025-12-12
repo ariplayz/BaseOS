@@ -83,7 +83,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
             name: BaseOS.iso
-            path: ${{ env.RUN_PATH }}/BaseOS.iso   # <-- specify the file or directory
+            path: bin/BaseOS.iso   # <-- specify the file or directory
             if-no-files-found: warn
             compression-level: 6
             overwrite: false
