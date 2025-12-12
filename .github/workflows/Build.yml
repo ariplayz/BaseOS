@@ -1,4 +1,4 @@
-name: Build 
+name: Build BaseOS
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-uefi-iso:
+  build-iso:
     runs-on: ubuntu-latest
 
     steps:
@@ -78,8 +78,20 @@ jobs:
           cp $RUN_PATH/uefi.iso bin/BaseOS.iso
 
 
-      - name: Upload ISO artifact
+
+      - name: Upload BaseOS ISO
         uses: actions/upload-artifact@v4
         with:
-          name: BaseOS.iso
+            name: BaseOS.iso
+            path: ${{ env.RUN_PATH }}/BaseOS.iso   # <-- specify the file or directory
+            if-no-files-found: warn
+            compression-level: 6
+            overwrite: false
+            include-hidden-files: false
+        env:
+            BUILD_PATH: build
+            RUN_PATH: build/qemu
+            OVMF_DISK_IMG: /usr/share/ovmf/OVMF.fd
+            ISO_ROOT: iso_root
+
 
