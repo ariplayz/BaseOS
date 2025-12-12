@@ -1,5 +1,4 @@
-
-name: Build
+name: Build 
 
 on:
   push:
@@ -8,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Build:
+  build-uefi-iso:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,11 +15,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Install dependencies
+      # Install basic dependencies
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake make xorriso ovmf gnu-efi
+          sudo apt-get install -y cmake make xorriso ovmf wget tar
+
+      # Download and build gnu-efi from source
+      - name: Build and install gnu-efi
+        run: |
+          wget https://sourceforge.net/projects/gnu-efi/files/latest/download -O gnu-efi.tar.gz
+          tar -xzf gnu-efi.tar.gz
+          cd gnu-efi-*
+          make
+          sudo make install
+          cd ..
 
       # Set environment variables
       - name: Set environment variables
@@ -31,10 +40,10 @@ jobs:
           echo "ISO_ROOT=iso_root" >> $GITHUB_ENV
 
       # Clean previous build
-      - name: Clean build path
+      - name: Clean previous build
         run: rm -rf $BUILD_PATH
 
-      # Build project
+      # Build EFI binary
       - name: Build EFI binary
         run: |
           mkdir -p $BUILD_PATH
@@ -73,4 +82,3 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BaseOS.iso
-          path: bin/BaseOS.iso
