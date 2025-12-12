@@ -24,9 +24,9 @@ jobs:
       # Download and build gnu-efi from source
       - name: Build and install gnu-efi
         run: |
-          wget https://sourceforge.net/projects/gnu-efi/files/latest/download -O gnu-efi.tar.gz
-          tar -xzf gnu-efi.tar.gz
-          cd gnu-efi-*
+          wget https://psychz.dl.sourceforge.net/project/gnu-efi/gnu-efi-3.0.18.tar.bz2
+          tar -xvjf gnu-efi-3.0.18.tar.bz2
+          cd gnu-efi-3.0.18
           make
           sudo make install
           cd ..
