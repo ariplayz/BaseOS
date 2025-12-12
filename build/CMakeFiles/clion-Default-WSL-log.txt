@@ -1,0 +1,4 @@
+/usr/bin/cmake -S /mnt/c/Users/ari/CLionProjects/BaseOS -B /mnt/c/Users/ari/CLionProjects/BaseOS/build
+-- Configuring done (0.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: /mnt/c/Users/ari/CLionProjects/BaseOS/build

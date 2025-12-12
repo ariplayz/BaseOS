@@ -1,0 +1,4 @@
+/mnt/c/Users/ari/CLionProjects/BaseOS/build/CMakeFiles/main_obj.dir
+/mnt/c/Users/ari/CLionProjects/BaseOS/build/CMakeFiles/cppefi.dir
+/mnt/c/Users/ari/CLionProjects/BaseOS/build/CMakeFiles/edit_cache.dir
+/mnt/c/Users/ari/CLionProjects/BaseOS/build/CMakeFiles/rebuild_cache.dir
