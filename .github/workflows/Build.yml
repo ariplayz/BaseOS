@@ -1,5 +1,5 @@
 
-name: Build UEFI ISO
+name: Build
 
 on:
   push:
