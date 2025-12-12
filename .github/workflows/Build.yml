@@ -1,0 +1,76 @@
+
+name: Build UEFI ISO
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install dependencies
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake make xorriso ovmf
+
+      # Set environment variables
+      - name: Set environment variables
+        run: |
+          echo "BUILD_PATH=build" >> $GITHUB_ENV
+          echo "RUN_PATH=build/qemu" >> $GITHUB_ENV
+          echo "OVMF_DISK_IMG=/usr/share/ovmf/OVMF.fd" >> $GITHUB_ENV
+          echo "ISO_ROOT=iso_root" >> $GITHUB_ENV
+
+      # Clean previous build
+      - name: Clean build path
+        run: rm -rf $BUILD_PATH
+
+      # Build project
+      - name: Build EFI binary
+        run: |
+          mkdir -p $BUILD_PATH
+          cd $BUILD_PATH
+          cmake ..
+          make
+          cd ..
+
+      # Prepare ISO directory
+      - name: Prepare ISO directory
+        run: |
+          mkdir -p $ISO_ROOT/EFI/BOOT
+          cp $BUILD_PATH/cppefi.efi $ISO_ROOT/EFI/BOOT/BOOTX64.EFI
+          echo "EFI\\BOOT\\BOOTX64.EFI" > $ISO_ROOT/startup.nsh
+
+      # Create ISO image
+      - name: Create ISO image
+        run: |
+          mkdir -p $RUN_PATH
+          xorriso -as mkisofs \
+            -o $RUN_PATH/uefi.iso \
+            -iso-level 3 \
+            -eltorito-alt-boot \
+            -e EFI/BOOT/BOOTX64.EFI \
+            -no-emul-boot \
+            $ISO_ROOT
+
+      # Copy ISO to bin directory
+      - name: Copy ISO to bin
+        run: |
+          mkdir -p bin
+          cp $RUN_PATH/uefi.iso bin/BaseOS.iso
+
+      # Upload artifact
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BaseOS.iso
+          path: bin/BaseOS.iso
