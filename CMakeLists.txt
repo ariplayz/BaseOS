@@ -31,7 +31,11 @@ set(COMPILE_FLAGS
 )
 
 # Create object file from main.cpp
-add_library(main_obj OBJECT main.cpp)
+add_library(main_obj OBJECT main.cpp
+        UefiConsole.cpp
+        UefiConsole.h
+        UefiCin.cpp
+        UefiCin.h)
 target_compile_options(main_obj PRIVATE ${COMPILE_FLAGS})
 
 # Custom command to link with ld and convert to EFI
