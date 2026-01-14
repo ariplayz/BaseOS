@@ -59,6 +59,11 @@ extern "C" {
     void _ZSt20__throw_length_errorPKc(char const*) { while(1); }
     void _ZSt17__throw_bad_allocv() { while(1); }
     void _ZSt28__throw_bad_array_new_lengthv() { while(1); }
+    void _ZSt24__throw_out_of_range_fmtPKcz(char const*, ...) { while(1); }
+
+    // Old ABI symbols
+    void* _ZNSs4_Rep20_S_empty_rep_storageE[32]; // Enough space for Rep
+    char __libc_single_threaded = 1;
 }
 
 void* operator new(size_t size) {
