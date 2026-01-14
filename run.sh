@@ -3,7 +3,7 @@ set -e
 
 # Paths
 RUN_PATH=build/qemu
-OVMF_DISK_IMG=/usr/share/ovmf/OVMF.fd
+OVMF_DISK_IMG=/usr/share/OVMF/OVMF_CODE.fd
 ISO_FILE=${RUN_PATH}/uefi.iso
 
 # Check ISO exists

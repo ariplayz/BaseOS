@@ -7,16 +7,16 @@ namespace UefiConsole
         input.clear();
         EFI_INPUT_KEY key;
         while (true) {
-            uefi_call_wrapper(ST->ConIn->ReadKeyStroke, 2, ST->ConIn, &key);
+            uefi_call_wrapper((void*)ST->ConIn->ReadKeyStroke, 2, ST->ConIn, &key);
             if (key.UnicodeChar == CHAR_CARRIAGE_RETURN) {
                 break;
             }
             if (key.UnicodeChar != 0) {
                 input.push_back(key.UnicodeChar);
-                Print(&key.UnicodeChar); // Echo
+                Print((CHAR16*)L"%c", key.UnicodeChar); // Echo
             }
         }
-        Print(L"\n");
+        Print((CHAR16*)L"\n");
         return *this;
     }
 
@@ -24,17 +24,17 @@ namespace UefiConsole
         UINTN pos = 0;
         EFI_INPUT_KEY key;
         while (true) {
-            uefi_call_wrapper(ST->ConIn->ReadKeyStroke, 2, ST->ConIn, &key);
+            uefi_call_wrapper((void*)ST->ConIn->ReadKeyStroke, 2, ST->ConIn, &key);
             if (key.UnicodeChar == CHAR_CARRIAGE_RETURN) {
                 break;
             }
             if (key.UnicodeChar != 0) {
                 buffer[pos++] = key.UnicodeChar;
-                Print(&key.UnicodeChar); // Echo
+                Print((CHAR16*)L"%c", key.UnicodeChar); // Echo
             }
         }
         buffer[pos] = L'\0';
-        Print(L"\n");
+        Print((CHAR16*)L"\n");
         return *this;
     }
 

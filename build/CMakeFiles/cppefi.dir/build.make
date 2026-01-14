@@ -74,7 +74,7 @@ cppefi.efi: cppefi.so
 
 cppefi.so:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/home/aric/CLionProjects/BaseOS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking cppefi.so"
-	ld -nostdlib --warn-common --no-undefined --fatal-warnings --build-id=sha1 -z nocombreloc -shared -Bsymbolic -L/usr/local/lib /usr/local/lib/crt0-efi-x86_64.o /home/aric/CLionProjects/BaseOS/build/CMakeFiles/main_obj.dir/main.cpp.o;/home/aric/CLionProjects/BaseOS/build/CMakeFiles/main_obj.dir/UefiConsole.cpp.o;/home/aric/CLionProjects/BaseOS/build/CMakeFiles/main_obj.dir/UefiCin.cpp.o -o /home/aric/CLionProjects/BaseOS/build/cppefi.so -lefi -lgnuefi /usr/lib/gcc/x86_64-linux-gnu/13/libgcc.a -T /usr/local/lib/elf_x86_64_efi.lds
+	ld -nostdlib --warn-common --no-undefined --fatal-warnings --build-id=sha1 -z nocombreloc -shared -Bsymbolic -L/usr/local/lib /usr/local/lib/crt0-efi-x86_64.o /home/aric/CLionProjects/BaseOS/build/CMakeFiles/main_obj.dir/main.cpp.o /home/aric/CLionProjects/BaseOS/build/CMakeFiles/main_obj.dir/UefiConsole.cpp.o /home/aric/CLionProjects/BaseOS/build/CMakeFiles/main_obj.dir/UefiCin.cpp.o -o /home/aric/CLionProjects/BaseOS/build/cppefi.so -lefi -lgnuefi /usr/lib/gcc/x86_64-redhat-linux/15/libgcc.a -T /usr/local/lib/elf_x86_64_efi.lds
 
 CMakeFiles/cppefi.dir/codegen:
 .PHONY : CMakeFiles/cppefi.dir/codegen

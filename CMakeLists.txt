@@ -15,6 +15,13 @@ set(EFI_LIB_PATH /usr/local/lib)
 set(EFI_CRT_OBJS ${EFI_LIB_PATH}/crt0-efi-${ARCH}.o)
 set(EFI_LDS ${EFI_LIB_PATH}/elf_${ARCH}_efi.lds)
 
+# Find libgcc.a
+execute_process(
+    COMMAND ${CMAKE_C_COMPILER} -print-libgcc-file-name
+    OUTPUT_VARIABLE LIBGCC_FILE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
 # Compile flags
 set(COMPILE_FLAGS
     -I${EFI_INCLUDE_PATH}
@@ -28,15 +35,20 @@ set(COMPILE_FLAGS
     -DEFI_FUNCTION_WRAPPER
     -fno-exceptions
     -fno-rtti
+    -fno-use-cxa-atexit
 )
 
 # Create object file from main.cpp
 add_library(main_obj OBJECT main.cpp
         UefiConsole.cpp
-        UefiConsole.h
-        UefiCin.cpp
-        UefiCin.h)
+        UefiCin.cpp)
 target_compile_options(main_obj PRIVATE ${COMPILE_FLAGS})
+
+set(MAIN_OBJ_FILES
+        ${CMAKE_BINARY_DIR}/CMakeFiles/main_obj.dir/main.cpp.o
+        ${CMAKE_BINARY_DIR}/CMakeFiles/main_obj.dir/UefiConsole.cpp.o
+        ${CMAKE_BINARY_DIR}/CMakeFiles/main_obj.dir/UefiCin.cpp.o
+)
 
 # Custom command to link with ld and convert to EFI
 add_custom_command(
@@ -52,14 +64,15 @@ add_custom_command(
         -Bsymbolic
         -L${EFI_LIB_PATH}
         ${EFI_CRT_OBJS}
-        $<TARGET_OBJECTS:main_obj>
+        ${MAIN_OBJ_FILES}
         -o ${CMAKE_BINARY_DIR}/cppefi.so
         -lefi
         -lgnuefi
-        /usr/lib/gcc/x86_64-linux-gnu/13/libgcc.a
+        ${LIBGCC_FILE}
         -T ${EFI_LDS}
     DEPENDS main_obj
     COMMENT "Linking cppefi.so"
+    VERBATIM
 )
 
 add_custom_command(

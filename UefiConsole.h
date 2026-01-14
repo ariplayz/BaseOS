@@ -13,6 +13,9 @@ namespace UefiConsole
         // Overload for wide string literal or CHAR16*
         UefiConsole& operator<<(const CHAR16* text);
 
+        // Overload for std::string
+        UefiConsole& operator<<(const std::string& text);
+
         // Overload for std::wstring
         UefiConsole& operator<<(const std::wstring& text);
 
