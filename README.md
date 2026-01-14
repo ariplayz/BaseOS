@@ -28,7 +28,7 @@ Check out our website: [https://ariplayz.github.io/BaseOS/](https://ariplayz.git
 - `cmake`
 - `clang`
 - `gcc` / `g++`
-- `gnu-efi`
+- `gnu-efi` [gnu-efi download](https://phoenixnap.dl.sourceforge.net/project/gnu-efi/gnu-efi-3.0.18.tar.bz2?viasf=1)
 - `xorriso`
 - `mtools`
 - `ovmf` (for testing with QEMU)
