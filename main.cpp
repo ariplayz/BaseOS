@@ -1,4 +1,5 @@
 #include <ostream>
+#include "Console.h"
 
 extern "C" {
 #include <efi.h>
@@ -28,6 +29,29 @@ extern "C" {
         return dest;
     }
 
+    void* memmove(void* dest, const void* src, size_t n) {
+        unsigned char* d = (unsigned char*)dest;
+        const unsigned char* s = (const unsigned char*)src;
+        if (d < s) {
+            while (n--) *d++ = *s++;
+        } else {
+            d += n;
+            s += n;
+            while (n--) *--d = *--s;
+        }
+        return dest;
+    }
+
+    void _ZSt25__glibcxx_assert_failPKciS0_S0_(char const*, int, char const*, char const*) { while(1); }
+}
+
+namespace std {
+    void __glibcxx_assert_fail(char const* file, int line, char const* function, char const* condition) noexcept {
+        while(1);
+    }
+}
+
+extern "C" {
     void* __dso_handle = (void*)0;
 
     // Name mangled versions of std::__throw_*
@@ -68,7 +92,19 @@ efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_table)
 std::string version = "0.1 ALPHA";
 
 int main() {
-    Print((CHAR16*)L"Welcome to BaseOS!\r\n");
-    Print((CHAR16*)L"Version 0.1 ALPHA\r\n");
+    Console::WriteLine(L"Welcome to BaseOS!");
+    Console::Write("Version: ");
+    Console::WriteLine(version);
+
+    Console::Write("Enter your name: ");
+    std::string name = Console::ReadLine();
+
+    Console::Write("Hello, ");
+    Console::Write(name);
+    Console::WriteLine("!");
+
+    Console::WriteLine("Press any key to continue...");
+    Console::Read();
+
     return 0;
 }
