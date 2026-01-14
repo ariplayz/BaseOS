@@ -21,6 +21,10 @@ mkfs.vfat ${EFI_IMG}
 mmd -i ${EFI_IMG} ::/EFI ::/EFI/BOOT
 mcopy -i ${EFI_IMG} ${BINARY_PATH} ::/EFI/BOOT/BOOTX64.EFI
 
+# Also copy to ISO root for better compatibility
+mkdir -p ${ISO_ROOT}/EFI/BOOT
+cp ${BINARY_PATH} ${ISO_ROOT}/EFI/BOOT/BOOTX64.EFI
+
 echo "EFI\\BOOT\\BOOTX64.EFI" > ${ISO_ROOT}/startup.nsh
 
 # Move EFI image into ISO root
