@@ -28,22 +28,35 @@
             </ul>
         </section>
 
-        <section id="getting-started">
-            <h2>Getting Started</h2>
-            <p>To try BaseOS, clone the repository and run the build scripts:</p>
-            <pre><code>./build.sh
-./makeimage.sh
-./run.sh</code></pre>
+        <section id="dependencies">
+            <h2>Dependencies</h2>
+            <p>BaseOS requires these dependencies:</p>
+            <p>gnu-efi (built and installed from <a href="https://psychz.dl.sourceforge.net/project/gnu-efi/gnu-efi-3.0.18.tar.bz2">gnu-efi-3.0.18.tar.bz2</a> or other source</p>
+            <p>And these libraries/build tools installed with your package manager (pacman, yay, dnf, apt, etc..)</p>
+            <p>cmake</p>
+            <p>clang</p>
+            <p>xorriso</p>
+            <p>ovmf</p>
+            <p>dosfstools</p>
+            <p>mtools</p>
+            <p>qemu-system-x86_64 (to test in VM)</p>
         </section>
 
-        <section id="download">
-            <h2>Download</h2>
-            <p>You can find the latest ISO builds in the <a href="https://github.com/aric/BaseOS/actions">GitHub Actions</a> artifacts.</p>
+        <section id="usage">
+            <h2>Usage</h2>
+            <p>To try BaseOS, clone the repository first and run the build scripts:</p>
+            <pre><code>./build.sh
+./makeimage.sh
+</code></pre>
+            <p>Now look in the bin directory for a bootable ISO.</p>
+            <p>To try locally with QEMU run the run.sh script.</p>
+            <pre><code>./run.sh</code></pre>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2026 BaseOS Project. Built with passion for low-level development.</p>
+        <p>All works under GNU GPL v3 license. Made with ❤ and open source.</p>
+        <p>Project by <a href="https://github.com/ariplayz/">Ari Cummings</a>.</p>
     </footer>
 </body>
 </html>
