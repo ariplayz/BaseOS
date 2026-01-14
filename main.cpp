@@ -92,6 +92,10 @@ extern "C" {
 EFI_STATUS EFIAPI
 efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_table)
 {
+    if (system_table && system_table->ConOut) {
+        uefi_call_wrapper((void*)system_table->ConOut->OutputString, 2, system_table->ConOut, (CHAR16*)L"BaseOS Starting...\r\n");
+    }
+
     gImageHandle = image_handle;
     InitializeLib(image_handle, system_table);
     main();

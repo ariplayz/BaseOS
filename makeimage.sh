@@ -35,9 +35,13 @@ xorriso -as mkisofs \
   -o ${ISO_FILE} \
   -iso-level 3 \
   -full-iso9660-filenames \
-  -eltorito-alt-boot \
+  -V "BASEOS" \
+  -J -R \
+  -eltorito-platform 0xef \
   -e efiboot.img \
   -no-emul-boot \
+  -isohybrid-gpt-basdat \
+  -partition_offset 16 \
   ${ISO_ROOT}
 
 mkdir -p bin
