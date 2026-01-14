@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseOS - A Freestanding UEFI Operating System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>BaseOS</h1>
+        <p>A simple, freestanding C++ Operating System for UEFI environments.</p>
+    </header>
+
+    <main>
+        <section id="about">
+            <h2>About BaseOS</h2>
+            <p>BaseOS is an experimental operating system built from the ground up to run in a pure UEFI environment. It leverages the power of C++ in a freestanding context, providing a high-level API for console I/O and hardware interaction.</p>
+        </section>
+
+        <section id="features">
+            <h2>Key Features</h2>
+            <ul>
+                <li><strong>Pure UEFI:</strong> Runs directly on UEFI firmware without legacy BIOS dependency.</li>
+                <li><strong>C++ Library:</strong> Custom <code>Console</code> library inspired by C# <code>Console.WriteLine</code>.</li>
+                <li><strong>Freestanding:</strong> Minimalist design with custom memory management and C++ ABI stubs.</li>
+                <li><strong>Easy Build:</strong> Fully automated build and ISO creation scripts.</li>
+            </ul>
+        </section>
+
+        <section id="getting-started">
+            <h2>Getting Started</h2>
+            <p>To try BaseOS, clone the repository and run the build scripts:</p>
+            <pre><code>./build.sh
+./makeimage.sh
+./run.sh</code></pre>
+        </section>
+
+        <section id="download">
+            <h2>Download</h2>
+            <p>You can find the latest ISO builds in the <a href="https://github.com/aric/BaseOS/actions">GitHub Actions</a> artifacts.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 BaseOS Project. Built with passion for low-level development.</p>
+    </footer>
+</body>
+</html>
