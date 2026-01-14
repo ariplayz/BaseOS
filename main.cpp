@@ -5,8 +5,6 @@ extern "C" {
 #include <efilib.h>
 }
 
-#include "UefiConsole.h"
-#include "UefiCin.h"
 #include <string>
 
 // Freestanding C/C++ stubs for EFI
@@ -72,7 +70,5 @@ std::string version = "0.1 ALPHA";
 int main() {
     Print((CHAR16*)L"Welcome to BaseOS!\r\n");
     Print((CHAR16*)L"Version 0.1 ALPHA\r\n");
-    // UefiConsole::writeLine << L"Welcome to BaseOS!" << UefiConsole::endl;
-    // UefiConsole::writeLine << L"Version 0.1 ALPHA" << UefiConsole::endl;
     return 0;
 }

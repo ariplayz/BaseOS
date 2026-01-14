@@ -40,8 +40,7 @@ set(COMPILE_FLAGS
 
 # Create object file from main.cpp
 add_library(main_obj OBJECT main.cpp
-        UefiConsole.cpp
-        UefiCin.cpp)
+)
 target_compile_options(main_obj PRIVATE ${COMPILE_FLAGS})
 
 set(MAIN_OBJ_FILES
