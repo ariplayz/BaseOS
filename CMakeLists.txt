@@ -36,6 +36,7 @@ set(COMPILE_FLAGS
     -fno-exceptions
     -fno-rtti
     -fno-use-cxa-atexit
+    -D_GLIBCXX_USE_CXX11_ABI=0
 )
 
 # Create object file from main.cpp
