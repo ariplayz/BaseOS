@@ -107,7 +107,24 @@ int main() {
     Console::Write("Version: ");
     Console::WriteLine(version);
 
-
+    Console::WriteLine(L"--- FileSystem Demo ---");
+    const char* filename = "test.txt";
+    Console::Write("Writing to ");
+    Console::WriteLine(filename);
+    
+    EFI_STATUS status = FileSystem::WriteAllText(filename, "Hello from the new ISO!");
+    if (status == EFI_SUCCESS) {
+        Console::WriteLine("Write successful.");
+        std::string content = FileSystem::ReadAllText(filename);
+        Console::Write("Read content: ");
+        Console::WriteLine(content);
+    } else {
+        Console::Write("Write failed: ");
+        Print((CHAR16*)L"%r\r\n", status);
+    }
+    Console::WriteLine(L"--- End of Demo ---");
+    Console::WriteLine(L"Press any key to exit...");
+    Console::Read();
 
     return 0;
 }
