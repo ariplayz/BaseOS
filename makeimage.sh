@@ -16,7 +16,7 @@ if [ ! -f "${BINARY_PATH}" ]; then
 fi
 
 echo "[+] Creating EFI boot image..."
-dd if=/dev/zero of=${EFI_IMG} bs=1M count=10
+dd if=/dev/zero of=${EFI_IMG} bs=1M count=31
 mkfs.vfat ${EFI_IMG}
 mmd -i ${EFI_IMG} ::/EFI ::/EFI/BOOT
 mcopy -i ${EFI_IMG} ${BINARY_PATH} ::/EFI/BOOT/BOOTX64.EFI
@@ -46,5 +46,7 @@ xorriso -as mkisofs \
 
 mkdir -p bin
 cp ${ISO_FILE} bin/BaseOS.iso
+cp ${ISO_ROOT}/efiboot.img bin/BaseOS.img
 
 echo "[+] ISO created: bin/BaseOS.iso"
+echo "[+] Disk image created: bin/BaseOS.img"

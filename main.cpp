@@ -86,8 +86,6 @@ void operator delete(void* ptr) noexcept {
 
 int main();
 
-EFI_HANDLE gImageHandle;
-
 extern "C" {
 EFI_STATUS EFIAPI
 efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_table)
@@ -96,63 +94,20 @@ efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_table)
         uefi_call_wrapper((void*)system_table->ConOut->OutputString, 2, system_table->ConOut, (CHAR16*)L"BaseOS Starting...\r\n");
     }
 
-    gImageHandle = image_handle;
     InitializeLib(image_handle, system_table);
     main();
     return EFI_SUCCESS;
 }
 }
 
-std::string version = "0.1 ALPHA";
+const char* version = "0.2 ALPHA";
 
 int main() {
     Console::WriteLine(L"Welcome to BaseOS!");
     Console::Write("Version: ");
     Console::WriteLine(version);
 
-    Console::WriteLine("--- FileSystem Demo ---");
-    const char* filename = "hello.txt";
-    
-    if (FileSystem::Exists(filename)) {
-        Console::Write("File '");
-        Console::Write(filename);
-        Console::WriteLine("' already exists. Deleting it...");
-        FileSystem::Delete(filename);
-    }
 
-    Console::Write("Creating and writing to '");
-    Console::Write(filename);
-    Console::WriteLine("'...");
-    FileSystem::WriteAllText(filename, "Hello from the new FileSystem library!\n");
-
-    Console::WriteLine("Appending text...");
-    FileSystem::AppendAllText(filename, "This was appended successfully.");
-
-    Console::WriteLine("Reading file content:");
-    std::string content = FileSystem::ReadAllText(filename);
-
-    if (!content.empty()) {
-        Console::WriteLine("-------------------------------");
-        Console::WriteLine(content);
-        Console::WriteLine("-------------------------------");
-    } else {
-        Console::WriteLine("(File content is empty or could not be read. Note: ISO is read-only.)");
-        Console::Write("Checking if file exists: ");
-        if (FileSystem::Exists(filename)) Console::WriteLine("Yes");
-        else Console::WriteLine("No");
-    }
-
-    Console::WriteLine("--- End of Demo ---");
-
-    Console::Write("Enter your name: ");
-    std::string name = Console::ReadLine();
-
-    Console::Write("Hello, ");
-    Console::Write(name);
-    Console::WriteLine("!");
-
-    Console::WriteLine("Press any key to exit...");
-    Console::Read();
 
     return 0;
 }

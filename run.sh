@@ -14,11 +14,11 @@ fi
 
 # Run QEMU
 echo "[+] Starting QEMU..."
+# We use -drive instead of -cdrom to allow the hybrid ISO to be writable
 qemu-system-x86_64 \
   -cpu qemu64 \
   -net none \
   -drive if=pflash,format=raw,unit=0,file=${OVMF_DISK_IMG},readonly=on \
-  -cdrom ${ISO_FILE} \
+  -drive file=${ISO_FILE},format=raw \
   -m 512M \
-  -serial stdio \
-  -boot d
+  -serial stdio

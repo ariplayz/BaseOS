@@ -20,11 +20,8 @@ void Console::Write(const std::string& text) {
 }
 
 void Console::Write(const char* text) {
-    if (!text) return;
-    while (*text) {
-        CHAR16 buffer[2] = {(CHAR16)*text, 0};
-        Print((CHAR16*)L"%c", buffer[0]);
-        text++;
+    if (text) {
+        Print((CHAR16*)L"%a", (char*)text);
     }
 }
 

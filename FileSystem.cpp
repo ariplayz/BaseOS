@@ -5,16 +5,15 @@ extern "C" {
 #include <efi.h>
 #include <efilib.h>
 size_t strlen(const char* s);
+extern EFI_HANDLE LibImageHandle;
 }
-
-extern EFI_HANDLE gImageHandle;
 
 EFI_STATUS FileSystem::GetRoot(EFI_FILE_HANDLE* root) {
     EFI_LOADED_IMAGE *loaded_image;
     EFI_GUID loaded_image_protocol = LOADED_IMAGE_PROTOCOL;
     EFI_STATUS status;
 
-    status = uefi_call_wrapper((void*)ST->BootServices->HandleProtocol, 3, gImageHandle, &loaded_image_protocol, (void**)&loaded_image);
+    status = uefi_call_wrapper((void*)ST->BootServices->HandleProtocol, 3, LibImageHandle, &loaded_image_protocol, (void**)&loaded_image);
     if (EFI_ERROR(status)) return status;
 
     EFI_FILE_IO_INTERFACE *file_system;
@@ -25,24 +24,25 @@ EFI_STATUS FileSystem::GetRoot(EFI_FILE_HANDLE* root) {
     return uefi_call_wrapper((void*)file_system->OpenVolume, 2, file_system, root);
 }
 
-std::wstring FileSystem::ToWString(const std::string& s) {
-    std::wstring ws;
-    for (char c : s) {
-        ws.push_back((wchar_t)c);
+static void ToWString(const char* s, CHAR16* out, UINTN max) {
+    if (!s || !out) return;
+    UINTN i = 0;
+    while (s[i] && i < max - 1) {
+        out[i] = (CHAR16)s[i];
+        i++;
     }
-    return ws;
+    out[i] = 0;
 }
 
-bool FileSystem::Exists(const std::string& path) {
-    return Exists(ToWString(path));
-}
-
-bool FileSystem::Exists(const std::wstring& path) {
+bool FileSystem::Exists(const char* path) {
     EFI_FILE_HANDLE root;
     if (EFI_ERROR(GetRoot(&root))) return false;
 
+    CHAR16 wpath[256];
+    ToWString(path, wpath, 256);
+
     EFI_FILE_HANDLE file;
-    EFI_STATUS status = uefi_call_wrapper((void*)root->Open, 5, root, &file, (CHAR16*)path.c_str(), EFI_FILE_MODE_READ, 0);
+    EFI_STATUS status = uefi_call_wrapper((void*)root->Open, 5, root, &file, wpath, EFI_FILE_MODE_READ, 0);
     
     if (status == EFI_SUCCESS) {
         uefi_call_wrapper((void*)file->Close, 1, file);
@@ -54,70 +54,71 @@ bool FileSystem::Exists(const std::wstring& path) {
     return false;
 }
 
-void FileSystem::WriteAllText(const std::string& path, const std::string& text) {
-    WriteAllText(ToWString(path), text.c_str(), text.size());
-}
-
-void FileSystem::WriteAllText(const std::string& path, const char* text) {
-    if (!text) return;
-    WriteAllText(ToWString(path), text, strlen(text));
-}
-
-void FileSystem::WriteAllText(const std::wstring& path, const std::string& text) {
-    WriteAllText(path, text.c_str(), text.size());
-}
-
-void FileSystem::WriteAllText(const std::wstring& path, const void* buffer, UINTN size) {
+EFI_STATUS FileSystem::WriteAllText(const char* path, const std::string& text) {
     EFI_FILE_HANDLE root;
-    if (EFI_ERROR(GetRoot(&root))) return;
+    EFI_STATUS status = GetRoot(&root);
+    if (EFI_ERROR(status)) return status;
+
+    CHAR16 wpath[256];
+    ToWString(path, wpath, 256);
 
     EFI_FILE_HANDLE file;
-    EFI_STATUS status = uefi_call_wrapper((void*)root->Open, 5, root, &file, (CHAR16*)path.c_str(), 
+    status = uefi_call_wrapper((void*)root->Open, 5, root, &file, wpath, 
                                         EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE, 0);
     
     if (status == EFI_SUCCESS) {
-        uefi_call_wrapper((void*)file->Write, 3, file, &size, (void*)buffer);
+        UINTN size = text.size();
+        status = uefi_call_wrapper((void*)file->Write, 3, file, &size, (void*)text.c_str());
         uefi_call_wrapper((void*)file->Flush, 1, file);
         uefi_call_wrapper((void*)file->Close, 1, file);
     }
     
     uefi_call_wrapper((void*)root->Close, 1, root);
+    return status;
 }
 
-std::string FileSystem::ReadAllText(const std::string& path) {
-    return ReadAllText(ToWString(path));
+EFI_STATUS FileSystem::WriteAllText(const char* path, const char* text) {
+    if (!text) return EFI_INVALID_PARAMETER;
+    return WriteAllText(path, std::string(text));
 }
 
-std::string FileSystem::ReadAllText(const std::wstring& path) {
+std::string FileSystem::ReadAllText(const char* path) {
     EFI_FILE_HANDLE root;
     if (EFI_ERROR(GetRoot(&root))) return "";
 
+    CHAR16 wpath[256];
+    ToWString(path, wpath, 256);
+
     EFI_FILE_HANDLE file;
-    EFI_STATUS status = uefi_call_wrapper((void*)root->Open, 5, root, &file, (CHAR16*)path.c_str(), EFI_FILE_MODE_READ, 0);
+    EFI_STATUS status = uefi_call_wrapper((void*)root->Open, 5, root, &file, wpath, EFI_FILE_MODE_READ, 0);
     if (status != EFI_SUCCESS) {
         uefi_call_wrapper((void*)root->Close, 1, root);
         return "";
     }
 
     std::string contents;
-    EFI_FILE_INFO *info = LibFileInfo(file);
-    if (info) {
+    char info_buf[512];
+    UINTN info_size = sizeof(info_buf);
+    EFI_FILE_INFO *info = (EFI_FILE_INFO *)info_buf;
+    EFI_GUID info_id = EFI_FILE_INFO_ID;
+    
+    status = uefi_call_wrapper((void*)file->GetInfo, 4, file, &info_id, &info_size, info);
+    
+    if (status == EFI_SUCCESS) {
         UINTN size = (UINTN)info->FileSize;
         if (size > 0) {
             char* buffer = NULL;
-            if (ST->BootServices->AllocatePool(EfiLoaderData, size + 1, (void**)&buffer) == EFI_SUCCESS) {
-                // Ensure position is at start
+            // Allocate slightly more just in case of off-by-one in FileSize reported
+            if (uefi_call_wrapper((void*)ST->BootServices->AllocatePool, 3, EfiLoaderData, size + 8, (void**)&buffer) == EFI_SUCCESS) {
                 uefi_call_wrapper((void*)file->SetPosition, 2, file, 0);
-                
                 UINTN read_size = size;
-                if (uefi_call_wrapper((void*)file->Read, 3, file, &read_size, buffer) == EFI_SUCCESS) {
-                    buffer[read_size] = '\0';
-                    contents = buffer;
+                status = uefi_call_wrapper((void*)file->Read, 3, file, &read_size, buffer);
+                if (status == EFI_SUCCESS) {
+                    contents = std::string(buffer, read_size);
                 }
-                ST->BootServices->FreePool(buffer);
+                uefi_call_wrapper((void*)ST->BootServices->FreePool, 1, buffer);
             }
         }
-        ST->BootServices->FreePool(info);
     }
 
     uefi_call_wrapper((void*)file->Close, 1, file);
@@ -126,60 +127,56 @@ std::string FileSystem::ReadAllText(const std::wstring& path) {
     return contents;
 }
 
-void FileSystem::AppendAllText(const std::string& path, const std::string& text) {
-    AppendAllText(ToWString(path), text.c_str(), text.size());
-}
-
-void FileSystem::AppendAllText(const std::string& path, const char* text) {
-    if (!text) return;
-    AppendAllText(ToWString(path), text, strlen(text));
-}
-
-void FileSystem::AppendAllText(const std::wstring& path, const std::string& text) {
-    AppendAllText(path, text.c_str(), text.size());
-}
-
-void FileSystem::AppendAllText(const std::wstring& path, const void* buffer, UINTN size) {
+EFI_STATUS FileSystem::AppendAllText(const char* path, const std::string& text) {
     EFI_FILE_HANDLE root;
-    if (EFI_ERROR(GetRoot(&root))) return;
+    EFI_STATUS status = GetRoot(&root);
+    if (EFI_ERROR(status)) return status;
+
+    CHAR16 wpath[256];
+    ToWString(path, wpath, 256);
 
     EFI_FILE_HANDLE file;
-    EFI_STATUS status = uefi_call_wrapper((void*)root->Open, 5, root, &file, (CHAR16*)path.c_str(), 
+    status = uefi_call_wrapper((void*)root->Open, 5, root, &file, wpath, 
                                         EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE, 0);
     
     if (status == EFI_SUCCESS) {
         uefi_call_wrapper((void*)file->SetPosition, 2, file, 0xFFFFFFFFFFFFFFFFULL);
-        uefi_call_wrapper((void*)file->Write, 3, file, &size, (void*)buffer);
+        UINTN size = text.size();
+        status = uefi_call_wrapper((void*)file->Write, 3, file, &size, (void*)text.c_str());
         uefi_call_wrapper((void*)file->Flush, 1, file);
         uefi_call_wrapper((void*)file->Close, 1, file);
     }
     
     uefi_call_wrapper((void*)root->Close, 1, root);
+    return status;
 }
 
-void FileSystem::Create(const std::string& path) {
-    Create(ToWString(path));
+EFI_STATUS FileSystem::AppendAllText(const char* path, const char* text) {
+    if (!text) return EFI_INVALID_PARAMETER;
+    return AppendAllText(path, std::string(text));
 }
 
-void FileSystem::Create(const std::wstring& path) {
-    WriteAllText(path, "", 0);
+EFI_STATUS FileSystem::Create(const char* path) {
+    return WriteAllText(path, "");
 }
 
-void FileSystem::Delete(const std::string& path) {
-    Delete(ToWString(path));
-}
-
-void FileSystem::Delete(const std::wstring& path) {
+EFI_STATUS FileSystem::Delete(const char* path) {
     EFI_FILE_HANDLE root;
-    if (EFI_ERROR(GetRoot(&root))) return;
+    EFI_STATUS status = GetRoot(&root);
+    if (EFI_ERROR(status)) return status;
+
+    CHAR16 wpath[256];
+    ToWString(path, wpath, 256);
 
     EFI_FILE_HANDLE file;
-    EFI_STATUS status = uefi_call_wrapper((void*)root->Open, 5, root, &file, (CHAR16*)path.c_str(), 
+    status = uefi_call_wrapper((void*)root->Open, 5, root, &file, wpath, 
                                         EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE, 0);
     
     if (status == EFI_SUCCESS) {
-        uefi_call_wrapper((void*)file->Delete, 1, file);
+        status = uefi_call_wrapper((void*)file->Delete, 1, file);
+    } else {
+        uefi_call_wrapper((void*)root->Close, 1, root);
     }
     
-    uefi_call_wrapper((void*)root->Close, 1, root);
+    return status;
 }
