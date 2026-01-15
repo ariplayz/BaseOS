@@ -1,5 +1,6 @@
 #include <ostream>
 #include "Console.h"
+#include "FileSystem.h"
 
 extern "C" {
 #include <efi.h>
@@ -62,7 +63,8 @@ extern "C" {
     void _ZSt24__throw_out_of_range_fmtPKcz(char const*, ...) { while(1); }
 
     // Old ABI symbols
-    void* _ZNSs4_Rep20_S_empty_rep_storageE[32]; // Enough space for Rep
+    void* _ZNSs4_Rep20_S_empty_rep_storageE[32]; // char
+    void* _ZNSbIwSt11char_traitsIwESaIwEE4_Rep20_S_empty_rep_storageE[32]; // wchar_t
     char __libc_single_threaded = 1;
 }
 
@@ -88,28 +90,24 @@ extern "C" {
 EFI_STATUS EFIAPI
 efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_table)
 {
+    if (system_table && system_table->ConOut) {
+        uefi_call_wrapper((void*)system_table->ConOut->OutputString, 2, system_table->ConOut, (CHAR16*)L"BaseOS Starting...\r\n");
+    }
+
     InitializeLib(image_handle, system_table);
     main();
     return EFI_SUCCESS;
 }
 }
 
-std::string version = "0.1 ALPHA";
+const char* version = "0.2 ALPHA";
 
 int main() {
     Console::WriteLine(L"Welcome to BaseOS!");
     Console::Write("Version: ");
     Console::WriteLine(version);
 
-    Console::Write("Enter your name: ");
-    std::string name = Console::ReadLine();
 
-    Console::Write("Hello, ");
-    Console::Write(name);
-    Console::WriteLine("!");
-
-    Console::WriteLine("Press any key to continue...");
-    Console::Read();
 
     return 0;
 }

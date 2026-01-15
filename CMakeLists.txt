@@ -43,12 +43,14 @@ set(COMPILE_FLAGS
 add_library(main_obj OBJECT 
         main.cpp
         Console.cpp
+        FileSystem.cpp
 )
 target_compile_options(main_obj PRIVATE ${COMPILE_FLAGS})
 
 set(MAIN_OBJ_FILES
         ${CMAKE_BINARY_DIR}/CMakeFiles/main_obj.dir/main.cpp.o
         ${CMAKE_BINARY_DIR}/CMakeFiles/main_obj.dir/Console.cpp.o
+        ${CMAKE_BINARY_DIR}/CMakeFiles/main_obj.dir/FileSystem.cpp.o
 )
 
 # Custom command to link with ld and convert to EFI
